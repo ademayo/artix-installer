@@ -84,8 +84,18 @@ grub-mkconfig -o /boot/grub/grub.cfg
 # Root password
 printf 'root:%s\n' "$ROOT_PASSWORD" | chpasswd
 
-# Enable wheel sudo permissions
-sed -i '/%wheel ALL=(ALL) ALL/s/^#//g' /etc/sudoers
+# Enable wheel sudo. The stock sudoers' wheel line is commented and its exact
+# form varies between builds ((ALL) vs (ALL:ALL), and some Artix ISOs ship a
+# /etc/sudoers.d/10-installer that already grants wheel); a validated drop-in
+# is deterministic and does not depend on the upstream file's shape.
+cat >/etc/sudoers.d/00-wheel <<'EOF'
+%wheel ALL=(ALL:ALL) ALL
+EOF
+chmod 440 /etc/sudoers.d/00-wheel
+visudo -cf /etc/sudoers.d/00-wheel || {
+	rm -f /etc/sudoers.d/00-wheel
+	printf "warning: wheel sudoers drop-in failed validation\n" >&2
+}
 
 # ---------------------------------------------------------------------------
 # User account
@@ -520,7 +530,7 @@ selection-background = #2E3244
 selection-foreground = #E3E6EF
 EOF
 
-# --- Noctalia (panel, dock, wallpaper, theme)
+# --- Noctalia (panel, wallpaper, theme)
 mkdir -p "$UHOME/.config/noctalia"
 cat >"$UHOME/.config/noctalia/config.toml" <<'EOF'
 # Noctalia - curated configuration installed by artix-installer.
@@ -568,17 +578,7 @@ end = ["tray", "clipboard", "network", "bluetooth", "volume", "battery", "sessio
 format = "{:%-l:%M %p}"        # "4:58 PM"; left click opens the calendar panel
 
 [dock]
-enabled = true
-position = "left"              # small auto-hiding dock on the left edge
-auto_hide = true
-show_running = true            # running-app indicators under pinned icons
-icon_size = 40
-main_axis_padding = 10
-cross_axis_padding = 6
-item_spacing = 5
-background_opacity = 0.85
-radius = 14
-margin_edge = 0                # flush with the screen edge
+enabled = false               # no dock; the top bar's launcher covers app launching
 EOF
 
 # --- niri compositor (full config, niri defaults + Noctalia wiring)
@@ -588,7 +588,7 @@ cat >"$UHOME/.config/niri/config.kdl" <<'EOF'
 // Reference: https://niri-wm.github.io/niri/Configuration:-Introduction
 // "Mod" is Super.
 
-// Noctalia must start with the session (panel, dock, launcher, lock, ...).
+// Noctalia must start with the session (panel, launcher, lock, ...).
 spawn-at-startup "noctalia"
 
 input {
