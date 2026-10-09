@@ -29,7 +29,8 @@ pkgs="$pkgs networkmanager networkmanager-$MY_INIT wpa_supplicant"
 # Session: greetd + tuigreet, niri + noctalia, terminals/shells
 pkgs="$pkgs greetd greetd-tuigreet greetd-$MY_INIT"
 pkgs="$pkgs niri noctalia xwayland-satellite ghostty"
-pkgs="$pkgs zsh dash vim nano"
+# vim, vi (ex-vi-compat: repo wrapper -> vim compatibility modes) and nano
+pkgs="$pkgs zsh dash vim ex-vi-compat nano"
 
 # Audio (user services via pipewire-$MY_INIT) and bluetooth/power
 pkgs="$pkgs pipewire pipewire-pulse pipewire-alsa wireplumber"
@@ -47,7 +48,7 @@ pkgs="$pkgs adwaita-fonts ttf-cascadia-code-nerd papirus-icon-theme"
 # Browser
 pkgs="$pkgs librewolf"
 
-# Toolchain used to build AUR packages (paru, strata-bin, vi) in the chroot phase
+# Toolchain used to build AUR packages (paru, strata-bin) in the chroot phase
 pkgs="$pkgs rust"
 
 [ "$MY_FS" = "btrfs" ] && pkgs="$pkgs btrfs-progs"

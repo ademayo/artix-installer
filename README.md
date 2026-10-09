@@ -27,7 +27,7 @@ The original copyright notices and GPL license have been retained in the source 
 | Greeter | `greetd` + `tuigreet` (`/etc/greetd/config.toml`), clock + remembered session; launches the Noctalia (Niri) session |
 | App launcher | `Ctrl+Space` opens the Noctalia launcher panel |
 | Terminal | [Ghostty](https://ghostty.org), Caskaydia Cove Nerd Font Mono with ligatures (`font-feature = calt`), themed via Noctalia's builtin ghostty template — `theme = noctalia` regenerates from the wallpaper palette whenever it changes (a fallback theme file ships for first boot) |
-| AUR | `paru` built from source; `strata-bin` (keyboard-first file manager) and `vi` (classic ex/vi) from AUR |
+| AUR | `paru` built from source; `strata-bin` (keyboard-first file manager) from AUR |
 | Fonts | Adwaita Sans (UI, set system-wide via dconf), Caskaydia Cove Nerd Font, Papirus-Dark icon theme (GTK3/GTK4/libadwaita defaults) |
 | Browser | LibreWolf (dark, Papirus-Dark icons via system defaults) |
 | Shells | `dash` is `/bin/sh`; `zsh` is the user shell with a lightweight oh-my-zsh-style `~/.zshrc`; personal aliases live in `~/.zshrc.local` |

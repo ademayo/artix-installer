@@ -770,7 +770,7 @@ grep -q '^ParallelDownloads' /etc/pacman.conf || \
 	sed -i 's/^#ParallelDownloads$/ParallelDownloads = 5/' /etc/pacman.conf
 
 # ---------------------------------------------------------------------------
-# AUR layer: paru (helper), strata (file manager), vi (editor)
+# AUR layer: paru (helper), strata (file manager)
 # Built as the user via the snapshot + makepkg + pacman -U dance.
 aur_build() {
 	pkg="$1"
@@ -807,8 +807,9 @@ aur_build paru
 # has no omarchy meta dependency, so no extra repository is needed.
 aur_build strata-bin
 
-# vi - the classic vi (mandate: "vim, vi and nano added"), from AUR
-aur_build vi
+# vi is NOT built from AUR: the Artix world repo ships ex-vi-compat
+# (vi/ex wrappers around vim, no signature-check dance), installed with the
+# base pkgs in installer.sh. Its AUR build failed on the makepkg GPG check.
 
 rm -rf /tmp/aurbuild
 
