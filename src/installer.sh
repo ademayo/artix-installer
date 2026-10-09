@@ -20,10 +20,39 @@
 # along with artix-installer. If not, see <https://www.gnu.org/licenses/>.
 
 # Packages
-pkgs="base base-devel $MY_INIT elogind-$MY_INIT efibootmgr grub dhcpcd wpa_supplicant connman-$MY_INIT"
+# Base
+pkgs="base base-devel sudo git $MY_INIT elogind-$MY_INIT efibootmgr grub"
+
+# Networking: NetworkManager with wpa_supplicant as the Wi-Fi backend
+pkgs="$pkgs networkmanager networkmanager-$MY_INIT wpa_supplicant"
+
+# Session: greetd + tuigreet, niri + noctalia, terminals/shells
+pkgs="$pkgs greetd greetd-tuigreet greetd-$MY_INIT"
+pkgs="$pkgs niri noctalia xwayland-satellite ghostty"
+pkgs="$pkgs zsh dash vim nano"
+
+# Audio (user services via pipewire-$MY_INIT) and bluetooth/power
+pkgs="$pkgs pipewire pipewire-pulse pipewire-alsa wireplumber"
+pkgs="$pkgs pipewire-$MY_INIT pipewire-pulse-$MY_INIT wireplumber-$MY_INIT"
+pkgs="$pkgs bluez bluez-obex bluez-$MY_INIT upower"
+
+# Desktop plumbing
+pkgs="$pkgs dbus-$MY_INIT polkit"
+pkgs="$pkgs xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-gnome"
+pkgs="$pkgs xdg-user-dirs dconf brightnessctl alsa-utils"
+
+# Fonts and icons: Adwaita Sans (UI), Caskaydia Cove Nerd Mono (terminals), Papirus-Dark (icons)
+pkgs="$pkgs adwaita-fonts ttf-cascadia-code-nerd papirus-icon-theme"
+
+# Browser
+pkgs="$pkgs librewolf"
+
+# Toolchain used to build AUR packages (paru, strata-bin, vi) in the chroot phase
+pkgs="$pkgs rust"
 
 [ "$MY_FS" = "btrfs" ] && pkgs="$pkgs btrfs-progs"
 [ "$ENCRYPTED" = "y" ] && pkgs="$pkgs cryptsetup cryptsetup-$MY_INIT"
+[ "$MY_INIT" = "dinit" ] && pkgs="$pkgs dinit-user-spawn"
 
 # Partition disk
 printf "label: gpt\n,550M,U\n,,\n" | sfdisk "$MY_DISK"

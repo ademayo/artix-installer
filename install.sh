@@ -7,8 +7,8 @@
 # This file is part of artix-installer.
 #
 # artix-installer is free software: you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
 # artix-installer is distributed in the hope that it will be useful, but
@@ -151,8 +151,18 @@ until [ "$MY_HOSTNAME" ]; do
 	read -r MY_HOSTNAME
 done
 
+# Username
+until echo "$MY_USER" | grep -Eq "^[a-z_][a-z0-9_-]{0,31}$"; do
+	printf "Username (e.g. 'alice'): "
+	read -r MY_USER
+	[ -z "$MY_USER" ] && MY_USER="user"
+done
+
 # Root password
 ROOT_PASSWORD=$(confirm_password "root password")
+
+# User password
+USER_PASSWORD=$(confirm_password "user password for $MY_USER")
 
 printf "\nDone with configuration. Installing...\n\n"
 
@@ -180,6 +190,8 @@ sudo \
 	MY_HOSTNAME="$MY_HOSTNAME" \
 	CRYPTPASS="$CRYPTPASS" \
 	ROOT_PASSWORD="$ROOT_PASSWORD" \
+	MY_USER="$MY_USER" \
+	USER_PASSWORD="$USER_PASSWORD" \
 	LANGCODE="$LANGCODE" \
 	MY_KEYMAP="$MY_KEYMAP" \
 	artix-chroot /mnt sh -ec './root/iamchroot.sh; rm /root/iamchroot.sh; exit' &&
