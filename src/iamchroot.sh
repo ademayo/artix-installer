@@ -381,7 +381,7 @@ nnoremap gV `[v`]
 EOF
 
 # --- Ghostty terminal (Caskaydia Cove Nerd Mono + ligatures)
-mkdir -p "$UHOME/.config/ghostty"
+mkdir -p "$UHOME/.config/ghostty/themes"
 cat >"$UHOME/.config/ghostty/config" <<'EOF'
 # Ghostty - tuned to blend into the Noctalia desktop.
 
