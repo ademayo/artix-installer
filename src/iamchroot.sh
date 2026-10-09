@@ -183,24 +183,108 @@ EOF
 cp /etc/gtk-3.0/settings.ini /etc/gtk-4.0/settings.ini
 
 # ---------------------------------------------------------------------------
-# greetd: tuigreet greeter (riced, minimal) launching the Noctalia session
+# greetd: regreet greeter (GTK4, riced) hosted by a minimal niri greeter
+# session, launching the Noctalia session on login.
 if ! getent passwd greeter >/dev/null 2>&1; then
 	# Some Artix builds skip sysusers.d processing; make sure the greeter
-	# account exists for greetd to drop privileges to.
-	useradd -r -M -d /var/lib/greetd -s /usr/sbin/nologin greeter
+	# account exists for greetd to drop privileges to. The video group lets
+	# the niri greeter compositor open the DRM device (matches greetd's own
+	# sysusers.d file, which adds greeter to video).
+	useradd -r -M -d /var/lib/greetd -s /usr/sbin/nologin -G video greeter
+else
+	usermod -a -G video greeter 2>/dev/null || true
 fi
+
+# State, log and home directories for the greeter (normally provisioned by
+# systemd-tmpfiles, which Artix does not have).
+install -d -m 755 -o greeter /var/lib/regreet /var/log/regreet /var/lib/greetd
+
+# regreet's reboot/power buttons run as the unprivileged greeter user; allow
+# exactly those two commands without a password (no systemd logind here).
+cat >/etc/sudoers.d/010-greeter-power <<'EOF'
+greeter ALL=(root) NOPASSWD: /usr/bin/poweroff, /usr/bin/reboot
+EOF
+chmod 440 /etc/sudoers.d/010-greeter-power
+visudo -cf /etc/sudoers.d/010-greeter-power || {
+	rm -f /etc/sudoers.d/010-greeter-power
+	printf "warning: greeter power sudoers entry failed validation\n" >&2
+}
 
 cat >/etc/greetd/config.toml <<'EOF'
 [terminal]
 vt = 1
 
 [default_session]
-command = "tuigreet --time --time-format '%l:%M %p' --remember --remember-session --cmd /usr/local/bin/start-niri --power-shutdown 'poweroff' --power-reboot 'reboot'"
+command = "dbus-run-session niri --config /etc/greetd/niri-greeter.kdl"
 user = "greeter"
 EOF
 
+# Compositor hosting regreet: niri draws the wallpaper behind regreet's GTK
+# window, and quits as soon as regreet exits (login chosen), handing control
+# back to greetd to start the picked session. Recipe from the regreet README.
+cat >/etc/greetd/niri-greeter.kdl <<'EOF'
+spawn-sh-at-startup "regreet; niri msg action quit --skip-confirmation"
+// Wallpaper behind the greeter; falls back to background-color if missing.
+spawn-sh-at-startup "swaybg -m fill /usr/local/share/backgrounds/greeter.jpg || true"
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+input {
+    keyboard {
+        xkb {
+            layout "__KEYMAP__"
+        }
+    }
+    touchpad {
+        tap
+        natural-scroll
+    }
+}
+
+cursor {
+    xcursor-theme "Adwaita"
+}
+
+layout {
+    // Center regreet's window over the wallpaper.
+    always-center-single-column
+    background-color "#1A1C26"
+    focus-ring {
+        off
+    }
+    border {
+        off
+    }
+}
+EOF
+
+# regreet itself: Noctalia-matching GTK look, greeting and clock.
+cat >/etc/greetd/regreet.toml <<'EOF'
+[appearance]
+greeting_msg = "Welcome back!"
+
+[commands]
+# The greeter user is unprivileged; /etc/sudoers.d/010-greeter-power allows
+# exactly these two commands.
+reboot = [ "sudo", "reboot" ]
+poweroff = [ "sudo", "poweroff" ]
+
+[GTK]
+application_prefer_dark_theme = true
+theme_name = "Adwaita-dark"
+icon_theme_name = "Papirus-Dark"
+font_name = "Adwaita Sans 11"
+cursor_theme_name = "Adwaita"
+cursor_blink = true
+
+[widget.clock]
+format = "%A  %-l:%M %p"
+EOF
+
 # Point the stock niri session entry at our Artix session wrapper so the
-# tuigreet session menu works on OpenRC and dinit (no systemd user manager).
+# regreet session menu works on OpenRC and dinit (no systemd user manager).
 sed -i \
 	-e 's/^Exec=.*/Exec=\/usr\/local\/bin\/start-niri/' \
 	-e 's/^Name=.*/Name=Noctalia (Niri)/' \
@@ -516,8 +600,8 @@ input {
         }
     }
     touchpad {
-        tap true
-        natural-scroll true
+        tap
+        natural-scroll
     }
 }
 
@@ -531,11 +615,17 @@ layout {
         width 2
         active-color "#6C79A6"
         inactive-color "transparent"
-        radius 8
     }
     focus-ring {
         off
     }
+}
+
+// Rounded window corners. niri has no radius option on the border; rounded
+// corners come from the geometry-corner-radius window rule instead.
+window-rule {
+    geometry-corner-radius 8
+    clip-to-geometry true
 }
 
 // Noctalia renders a blurred, tinted copy of the wallpaper into niri's
@@ -700,7 +790,7 @@ sed -i \
 	-e "s|__UHOME__|$UHOME|g" \
 	"$UHOME/.config/noctalia/config.toml" \
 	"$UHOME/.config/niri/config.kdl"
-sed -i "s|__KEYMAP__|$MY_KEYMAP|g" "$UHOME/.config/niri/config.kdl"
+sed -i "s|__KEYMAP__|$MY_KEYMAP|g" "$UHOME/.config/niri/config.kdl" /etc/greetd/niri-greeter.kdl
 
 # --- Wallpaper: muted landscape photo (Pexels), full resolution
 BG_DIR="$UHOME/.local/share/backgrounds"
@@ -718,6 +808,9 @@ for bg_url in \
 done
 if [ "$BG_OK" = "1" ]; then
 	chown "$MY_USER:" "$BG_FILE"
+	# Greeter background: root-owned and world-readable, because the regreet
+	# niri greeter session runs as the unprivileged greeter user.
+	install -D -m 644 "$BG_FILE" /usr/local/share/backgrounds/greeter.jpg
 else
 	rm -f "$BG_FILE"
 	printf "warning: wallpaper download failed; Noctalia will use its fill colour\n"
@@ -817,4 +910,4 @@ rm -rf /tmp/aurbuild
 su "$MY_USER" -c 'timeout 30 noctalia config validate' >/dev/null 2>&1 ||
 	printf "note: noctalia config validate reported issues; run it manually after first boot\n"
 
-printf '\nDone. Reboot into Noctalia (Niri) via tuigreet.\n'
+printf '\nDone. Reboot into Noctalia (Niri) via regreet.\n'

@@ -26,8 +26,10 @@ pkgs="base base-devel sudo git $MY_INIT elogind-$MY_INIT efibootmgr grub"
 # Networking: NetworkManager with wpa_supplicant as the Wi-Fi backend
 pkgs="$pkgs networkmanager networkmanager-$MY_INIT wpa_supplicant"
 
-# Session: greetd + tuigreet, niri + noctalia, terminals/shells
-pkgs="$pkgs greetd greetd-tuigreet greetd-$MY_INIT"
+# Session: greetd + regreet (GTK4 greeter hosted by a niri greeter session),
+# niri + noctalia, terminals/shells. greetd-regreet lives in the galaxy repo,
+# enabled on a stock Artix install; accountsservice is D-Bus activated.
+pkgs="$pkgs greetd greetd-$MY_INIT greetd-regreet accountsservice"
 pkgs="$pkgs niri noctalia xwayland-satellite ghostty"
 # vim, vi (ex-vi-compat: repo wrapper -> vim compatibility modes) and nano
 pkgs="$pkgs zsh dash vim ex-vi-compat nano"
@@ -40,7 +42,9 @@ pkgs="$pkgs bluez bluez-obex bluez-$MY_INIT upower"
 # Desktop plumbing
 pkgs="$pkgs dbus-$MY_INIT polkit"
 pkgs="$pkgs xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-gnome"
-pkgs="$pkgs xdg-user-dirs dconf brightnessctl alsa-utils"
+# swaybg draws the greeter wallpaper behind regreet; adwaita-cursors is the
+# cursor theme for the greeter and desktop sessions
+pkgs="$pkgs xdg-user-dirs dconf brightnessctl alsa-utils swaybg adwaita-cursors"
 
 # Fonts and icons: Adwaita Sans (UI), Caskaydia Cove Nerd Mono (terminals), Papirus-Dark (icons)
 pkgs="$pkgs adwaita-fonts ttf-cascadia-code-nerd papirus-icon-theme"

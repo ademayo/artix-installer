@@ -24,7 +24,7 @@ The original copyright notices and GPL license have been retained in the source 
 | Compositor | [Niri](https://github.com/YaLTeR/niri) (scrollable tiling, Wayland) with full keybind set |
 | Desktop shell | [Noctalia](https://docs.noctalia.dev) — panel (workspaces, tray, clipboard, network w/ selection, bluetooth, volume, battery, power/session menu) and a clock in `4:58 PM` format that opens a calendar panel on click; **muted Material palette generated from the wallpaper**; blurred wallpaper backdrop in niri's overview |
 | Dock | Noctalia dock pinned to the **left** edge, small, auto-hiding, with running-app indicators |
-| Greeter | `greetd` + `tuigreet` (`/etc/greetd/config.toml`), clock + remembered session; launches the Noctalia (Niri) session |
+| Greeter | `greetd` + `regreet` (GTK4, `/etc/greetd/regreet.toml` + `/etc/greetd/niri-greeter.kdl`) on a wallpaper, dark GTK, remembered user/session; launches the Noctalia (Niri) session |
 | App launcher | `Ctrl+Space` opens the Noctalia launcher panel |
 | Terminal | [Ghostty](https://ghostty.org), Caskaydia Cove Nerd Font Mono with ligatures (`font-feature = calt`), themed via Noctalia's builtin ghostty template — `theme = noctalia` regenerates from the wallpaper palette whenever it changes (a fallback theme file ships for first boot) |
 | AUR | `paru` built from source; `strata-bin` (keyboard-first file manager) from AUR |
