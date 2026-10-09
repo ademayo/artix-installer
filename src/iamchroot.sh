@@ -723,8 +723,8 @@ else
 	printf "warning: wallpaper download failed; Noctalia will use its fill colour\n"
 fi
 
-# Standard XDG user directories
-su -l "$MY_USER" -c 'xdg-user-dirs-update' >/dev/null 2>&1 || true
+# Standard XDG user directories (non-login su, see aur_build note)
+su "$MY_USER" -c 'xdg-user-dirs-update' >/dev/null 2>&1 || true
 
 # Ownership pass
 chown -R "$MY_USER:" "$UHOME/.config" "$UHOME/.cache" 2>/dev/null || true
@@ -781,7 +781,22 @@ aur_build() {
 		-o "/tmp/aurbuild/$pkg.tar.gz"
 	tar -xf "/tmp/aurbuild/$pkg.tar.gz" -C "$dir"
 	chown -R "$MY_USER:" "$dir"
-	su -l "$MY_USER" -c "cd '$dir/$pkg' && makepkg -f"
+
+	# makepkg only checks dependencies, it never installs them: resolve
+	# depends/makedepends/checkdepends from the PKGBUILD and install them as
+	# root first (as the build user, pacman would need sudo we cannot give).
+	# --asdeps keeps them marked as auto-installed for later cleanup.
+	deps=$(bash -c 'cd "$1" && source ./PKGBUILD &&
+		printf "%s\n" "${depends[*]}" "${makedepends[*]}" "${checkdepends[*]}"' \
+		aurbuild "$dir/$pkg")
+	if [ -n "$deps" ]; then
+		pacman -S --needed --noconfirm --asdeps $deps
+	fi
+
+	# Non-login su on purpose: HOME/USER are set for the target user but the
+	# login-shell profile chain is never sourced, which keeps builds isolated
+	# from any tty/mesg-style profile noise in the chroot.
+	su "$MY_USER" -c "cd '$dir/$pkg' && makepkg -f"
 	pacman -U --noconfirm "$dir/$pkg"/*.pkg.tar.zst
 }
 
@@ -798,7 +813,7 @@ aur_build vi
 rm -rf /tmp/aurbuild
 
 # Best-effort validation of the Noctalia configuration we generated.
-su -l "$MY_USER" -c 'timeout 30 noctalia config validate' >/dev/null 2>&1 ||
+su "$MY_USER" -c 'timeout 30 noctalia config validate' >/dev/null 2>&1 ||
 	printf "note: noctalia config validate reported issues; run it manually after first boot\n"
 
 printf '\nDone. Reboot into Noctalia (Niri) via tuigreet.\n'
