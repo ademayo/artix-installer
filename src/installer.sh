@@ -41,7 +41,11 @@ pkgs="$pkgs bluez bluez-obex bluez-$MY_INIT upower"
 
 # Desktop plumbing
 pkgs="$pkgs dbus-$MY_INIT polkit"
-pkgs="$pkgs xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-gnome"
+# Desktop plumbing. xdg-desktop-portal-gnome is deliberately excluded: it
+# pulls in gnome-shell/mutter and expects a GNOME session, so it is useless
+# (and drags in the GNOME desktop) on a niri-only install. -gtk covers the
+# backend interfaces niri clients need.
+pkgs="$pkgs xdg-desktop-portal xdg-desktop-portal-gtk"
 # swaybg draws the greeter wallpaper behind regreet; adwaita-cursors is the
 # cursor theme for the greeter and desktop sessions
 pkgs="$pkgs xdg-user-dirs dconf brightnessctl alsa-utils swaybg adwaita-cursors"

@@ -434,8 +434,7 @@ set smarttab
 set shiftwidth=4
 set softtabstop=4
 set tabstop=4
-autocmd FileType yaml,html,css,javascript,typescript,json,toml,sh,zsh,markdown
-	\ setlocal shiftwidth=2 softtabstop=2 tabstop=2
+autocmd FileType yaml,html,css,javascript,typescript,json,toml,sh,zsh,markdown setlocal shiftwidth=2 softtabstop=2 tabstop=2
 set autoindent
 set smartindent
 
@@ -461,9 +460,9 @@ set showcmd
 set laststatus=2
 set statusline=%f\ %m%r%h%w%=%y\ %p%%\ %l:%c
 set showmatch
-set wrap off
+set nowrap
 set mouse=a
-set inccommand=nosplit
+" 'inccommand' is Neovim-only (live :s preview); Vim 9 errors on it
 set splitbelow
 set splitright
 
@@ -898,6 +897,9 @@ aur_build paru
 
 # strata - keyboard-first file manager (mandate), from AUR. Unlike flea-bin it
 # has no omarchy meta dependency, so no extra repository is needed.
+# It is a plain GTK4 app (no nautilus/gnome-desktop bits), so it inherits the
+# system look (/etc/gtk-4.0/settings.ini + dconf: Adwaita-dark, Papirus-Dark,
+# Adwaita Sans, prefer-dark) - same theme as regreet, noctalia and ghostty.
 aur_build strata-bin
 
 # vi is NOT built from AUR: the Artix world repo ships ex-vi-compat
